@@ -259,40 +259,41 @@ def do_action(src, dest, action, overwrite=False, testdebug=False, relsym=False)
         if testdebug:
             print(overwrite_string + action + ': ' + src + ' -> ' + str(dest))
         else:
-            #copies the file from one directory to another
-            if action == "copy":
-                if overwrite:
-                    os.remove(dest)
-                shutil.copy(src, dest)
-            #moves the file from one directory to another
-            elif action == "move":
-                if overwrite:
-                    os.remove(dest)
-                shutil.move(src, dest)
-            #symlinks the file from one directory to another
-            elif action == "symlink":
-                if overwrite:
-                    os.unlink(dest)
-                if relsym:
-                    os.symlink(rel_src_from_dest, dest)
+            if not os.path.exists(dest):
+                #copies the file from one directory to another
+                if action == "copy":
+                    if overwrite:
+                        os.remove(dest)
+                    shutil.copy(src, dest)
+                #moves the file from one directory to another
+                elif action == "move":
+                    if overwrite:
+                        os.remove(dest)
+                    shutil.move(src, dest)
+                #symlinks the file from one directory to another
+                elif action == "symlink":
+                    if overwrite:
+                        os.unlink(dest)
+                    if relsym:
+                        os.symlink(rel_src_from_dest, dest)
+                    else:
+                        os.symlink(src, dest)
+                #moves the file from one directory to another AND symlinks it back to its source
+                elif action == "move+symlink":
+                    if overwrite:
+                        os.remove(dest)
+                    shutil.move(src, dest)
+                    if relsym:
+                        os.symlink(rel_dest_from_src, src)
+                    else:
+                        os.symlink(dest, src)
+                elif action=="s3cmd":
+                    if overwrite:
+                        os.remove(dest)
+                    cmd="s3cmd sync "+src+" "+dest
+                    os.system(cmd)
                 else:
-                    os.symlink(src, dest)
-            #moves the file from one directory to another AND symlinks it back to its source
-            elif action == "move+symlink":
-                if overwrite:
-                    os.remove(dest)
-                shutil.move(src, dest)
-                if relsym:
-                    os.symlink(rel_dest_from_src, src)
-                else:
-                    os.symlink(dest, src)
-            elif action=="s3cmd":
-                if overwrite:
-                    os.remove(dest)
-                cmd="s3cmd sync "+src+" "+dest
-                os.system(cmd)
-            else:
-                sys.exit()
+                    sys.exit()
 
 
 # data should be of the format of json
